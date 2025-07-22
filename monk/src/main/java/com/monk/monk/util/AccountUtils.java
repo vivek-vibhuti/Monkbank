@@ -12,6 +12,7 @@ public class AccountUtils {
     public static final String ACCOUNT_FOUND_SUCESS = "USER FOUND SUCESSFULLY";
     public static final String ACCOUNT_FOUND_CODE ="005" ;
     public static final String ACCOUNT_FOUND_SUCCESS ="sucessful" ;
+    public static final String ACCOUNT_CREDIT_SUCCESS = "006" ;
 
     public static String generateAccountNumber() {
         // Current year and random six-digit number

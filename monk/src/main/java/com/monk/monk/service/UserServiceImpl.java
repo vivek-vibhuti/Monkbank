@@ -6,6 +6,7 @@ import com.monk.monk.repository.UserRepository;
 import com.monk.monk.util.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.monk.monk.dto.BankResponse;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -34,7 +35,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Retrieve account details
-        Optional<User> founder = userRepository.findByAccountNumber(userRequest.getAccountNumber());
+        Optional<User> founder = Optional.ofNullable(userRepository.findByAccountNumber(userRequest.getAccountNumber()));
 
         if (founder.isEmpty()) {
             return BankResponse.builder()
@@ -43,8 +44,6 @@ public class UserServiceImpl implements UserService {
                     .accountInfo(null)
                     .build();
         }
-
-        // Construct response with account details
         User user = founder.get();
         return BankResponse.builder()
                 .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
@@ -68,7 +67,7 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        // Create new user entity
+
         User newUser = User.builder()
                 .firstName(userRequest.getFirstName())
                 .lastName(userRequest.getLastName())
@@ -110,6 +109,7 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .build();
     }
+    //balance enquiry , name enquiry , credit ,d ebit , credit transfer
 
     @Override
     public BankResponse balanceEnquiry(EnquireyRequest userRequest) {
@@ -117,7 +117,50 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String nameEnquiry(UserRequest request) {
+    public String nameEnquiry(EnquireyRequest request) {
         return "";
+
+
+
+    }
+
+    @Override
+    public BankResponse creditAccount(CreditDebitRequest request) {
+        boolean isAccountExist = userRepository.existsByAccountNumber(request.getAccountNumber());
+        if (!isAccountExist) {
+            return BankResponse.builder()
+                    .responseCode(AccountUtils.ACCOUNT_EXIST_CODE)
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXIST_MESSAGE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+
+        User userTocredit = userRepository.findByAccountNumber(request.getAccountNumber());
+
+        userTocredit.setAccountBalance(userTocredit.getAccountBalance().add(request.getAmount()));
+        userRepository.save(userTocredit);
+        userTocredit.setAccountBalance(
+                userTocredit.getAccountBalance().add(request.getAmount())
+
+        );
+
+        return BankResponse.builder()
+                .responseMessage("Account Credited Successfully")
+                .responseCode(AccountUtils.ACCOUNT_CREDIT_SUCCESS) // you can define a separate success code if needed
+                .accountInfo(AccountInfo.builder()
+                        .accountName(userTocredit.getFirstName() + " " +
+                                userTocredit.getLastName() + " " +
+                                (userTocredit.getOtherName() != null ? userTocredit.getOtherName() : ""))
+                        .accountNumber(userTocredit.getAccountNumber())
+                        .accountBalance(userTocredit.getAccountBalance())
+                        .build())
+                .build();
+    }
+
+    @Override
+    public BankResponse debitAccount(CreditDebitRequest request) {
+        return null;
     }
 }
+    
